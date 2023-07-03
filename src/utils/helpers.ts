@@ -11,7 +11,7 @@ import {
 import { UserDB } from "../controllers/user";
 import { HttpResponse } from "../types/server-types";
 
-const parseBody = async (req: IncomingMessage) => {
+export const parseBody = async (req: IncomingMessage) => {
   return new Promise((resolve) => {
     const body: Buffer[] = [];
 

@@ -5,7 +5,10 @@
   "main": "index.ts",
   "scripts": {
     "test": "jest --detectOpenHandles",
-    "start:dev": "ts-node index.ts"
+    "build": "tsc -p tsconfig.json && webpack --config ./webpack.config.js",
+    "start:dev": "cross-env NODE_ENV=development nodemon --exec ts-node ./src/index.ts",
+    "start:prod": "cross-env NODE_ENV=production node ./bundle/src/index.js",
+    "start:multi": "cross-env NODE_ENV=development nodemon --exec ts-node ./src/loadBalancer.ts"
   },
   "repository": {
     "type": "git",

@@ -8,7 +8,7 @@ import { v4, validate } from "uuid";
 
 dotenv.config({ path: __dirname + "/.env" });
 
-const PORT: number = parseInt(process.env.PORT!, 10) || 5000;
+const PORT: number = parseInt(process.env.PORT!, 10) || 4000;
 
 const newUser: IUser = {
   username: "Vlad",
