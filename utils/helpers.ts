@@ -4,6 +4,7 @@ import { v4, validate } from "uuid";
 import {
   BASE_URL_MATCHER,
   HTTP_METHODS,
+  URL_BASE,
   URL_MATCHER,
 } from "../constants/constants";
 import { UserDB } from "../controllers/user";
@@ -35,155 +36,175 @@ const validateUser = (body: IUser) => {
   return Boolean(username && age && hobbies && Array.isArray(hobbies));
 };
 
-export const requestHandler = async (
+export const handleRequest = async (
   req: IncomingMessage,
   res: ServerResponse
 ): Promise<HttpResponse> => {
   const { method, url } = req;
-
-  let responseStatus: number;
-  let response: ServerResponse | any = JSON.stringify({});
 
   process.stdout.write(`[INFO] REQUEST ${method}: '${url}'\n`);
 
   res.setHeader("Content-Type", "application/json");
 
   if (URL_MATCHER.test(url as string)) {
-    const isIdProvided = BASE_URL_MATCHER.test(url as string);
+    const isOnlyBaseProvided = BASE_URL_MATCHER.test(url as string);
 
     switch (method) {
       case HTTP_METHODS.GET:
-        if (!isIdProvided) {
-          responseStatus = 200;
-          response = JSON.stringify({ data: UserDB.getAllUsers() });
-        } else {
-          const uuid = url?.replace("/api/users/", "") as string;
-          if (validate(uuid)) {
-            const searchResults = UserDB.getUserById(uuid);
-
-            responseStatus = searchResults ? 200 : 400;
-            response = JSON.stringify(searchResults ? searchResults : []);
-          } else {
-            responseStatus = 400;
-            response = JSON.stringify({
-              error: "Provided ID is not a valid UUID value!",
-            });
-          }
+        if (isOnlyBaseProvided) {
+          return {
+            response: JSON.stringify({ data: UserDB.getAllUsers() }),
+            status: 200,
+          };
         }
-        break;
+
+        const uuid = url?.replace(URL_BASE, "") as string;
+
+        if (validate(uuid)) {
+          const searchResults = UserDB.getUserById(uuid);
+
+          return {
+            response: JSON.stringify(searchResults ? searchResults : []),
+            status: searchResults ? 200 : 400,
+          };
+        }
+
+        return {
+          response: JSON.stringify({
+            error: "Provided ID is not a valid UUID value!",
+          }),
+          status: 400,
+        };
       case HTTP_METHODS.POST:
-        if (!isIdProvided) {
+        if (isOnlyBaseProvided) {
           const requestBody: any = await parseBody(req);
 
-          if (!requestBody.data) {
-            responseStatus = 404;
-            response = JSON.stringify({
-              error: "Please provide request body!",
-            });
+          if (!requestBody) {
+            return {
+              response: JSON.stringify({
+                error: "Please provide request body!",
+              }),
+              status: 404,
+            };
           }
 
-          if (validateUser(requestBody.data)) {
+          if (validateUser(requestBody)) {
             const userId: string = v4();
 
             const newUser: IUser = {
               id: userId,
-              ...requestBody.data,
+              ...requestBody,
             };
 
             UserDB.createUser(newUser);
 
-            responseStatus = 201;
-            response = JSON.stringify(UserDB.getAllUsers());
-          } else {
-            responseStatus = 400;
-            response = JSON.stringify({
+            return {
+              response: JSON.stringify(UserDB.getAllUsers()),
+              status: 201,
+            };
+          }
+          return {
+            response: JSON.stringify({
               error:
                 "Please fill all required data {username: str, age: number, hobbies: array->string }",
-            });
-          }
-        } else {
-          responseStatus = 404;
-          response = JSON.stringify({
-            error: "Please provide a valid URL string for this request method!",
-          });
+            }),
+            status: 400,
+          };
         }
-        break;
+        return {
+          response: JSON.stringify({
+            error: "Please provide a valid URL string for this request method!",
+          }),
+          status: 404,
+        };
       case HTTP_METHODS.PUT:
-        if (isIdProvided) {
-          const uuid = url?.replace("/api/users/", "") as string;
+        if (!isOnlyBaseProvided) {
+          const uuid = url?.replace(URL_BASE, "") as string;
 
           if (validate(uuid)) {
             const searchResults = UserDB.getUserById(uuid);
 
             if (!searchResults) {
-              responseStatus = 404;
-              response = JSON.stringify({ error: "User not found" });
-            } else {
-              const requestBody: any = await parseBody(req);
-              const updateData: IUser = requestBody ? requestBody.data : {};
-
-              const user: IUser | undefined = UserDB.updateUserById(
-                uuid,
-                updateData
-              );
-
-              responseStatus = 200;
-              response = JSON.stringify({ data: user });
+              return {
+                response: JSON.stringify({ error: "User not found" }),
+                status: 404,
+              };
             }
 
-            responseStatus = searchResults ? 200 : 400;
-            response = JSON.stringify(searchResults ? searchResults : []);
-          } else {
-            responseStatus = 400;
-            response = JSON.stringify({
-              error: "Provided ID is not a valid UUID value!",
-            });
+            const requestBody: any = await parseBody(req);
+            const updateData: IUser = requestBody ? requestBody : {};
+
+            const user: IUser | undefined = UserDB.updateUserById(
+              uuid,
+              updateData
+            );
+
+            return {
+              response: JSON.stringify({ data: user }),
+              status: 200,
+            };
           }
-        } else {
-          responseStatus = 404;
-          response = JSON.stringify({
-            error: "Please provide a valid URL string for this request method!",
-          });
+          return {
+            response: JSON.stringify({
+              error: "Provided ID is not a valid UUID value!",
+            }),
+            status: 400,
+          };
         }
+        return {
+          response: JSON.stringify({
+            error: "Please provide a valid URL string for this request method!",
+          }),
+          status: 404,
+        };
       case HTTP_METHODS.DELETE:
-        if (isIdProvided) {
-          const uuid = url?.replace("/api/users/", "") as string;
+        if (!isOnlyBaseProvided) {
+          const uuid = url?.replace(URL_BASE, "") as string;
 
           if (validate(uuid)) {
             const searchResults = UserDB.getUserById(uuid);
 
             if (!searchResults) {
-              responseStatus = 404;
-              response = JSON.stringify({ error: "User not found" });
-            } else {
-              UserDB.deleteUser(uuid);
-              responseStatus = 204;
+              return {
+                response: JSON.stringify({ error: "User not found" }),
+                status: 404,
+              };
             }
 
-            responseStatus = searchResults ? 200 : 400;
-            response = JSON.stringify(searchResults ? searchResults : []);
-          } else {
-            responseStatus = 400;
-            response = JSON.stringify({
-              error: "Provided ID is not a valid UUID value!",
-            });
+            UserDB.deleteUser(uuid);
+
+            return {
+              response: JSON.stringify({}),
+              status: 204,
+            };
           }
-        } else {
-          responseStatus = 404;
-          response = JSON.stringify({
-            error: "Please provide a valid URL string for this request method!",
-          });
+          return {
+            response: JSON.stringify({
+              error: "Provided ID is not a valid UUID value!",
+            }),
+            status: 400,
+          };
         }
+        return {
+          response: JSON.stringify({
+            error: "Please provide a valid URL string for this request method!",
+          }),
+          status: 404,
+        };
       default:
-        responseStatus = 404;
-        response = JSON.stringify({
-          error: "This method is not supported!",
-        });
+        return {
+          response: JSON.stringify({
+            error: "This method is not supported!",
+          }),
+          status: 404,
+        };
     }
   } else {
-    responseStatus = 404;
-    response = JSON.stringify({ error: "Please provide a valid URL string!" });
+    return {
+      response: JSON.stringify({
+        error: "Please provide a valid URL string!",
+      }),
+      status: 404,
+    };
   }
-
-  return { response, status: responseStatus };
 };

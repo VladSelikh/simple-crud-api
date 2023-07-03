@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Server, createServer } from "http";
 import { UserDB } from "./controllers/user";
-import { requestHandler } from "./utils/helpers";
+import { handleRequest } from "./utils/helpers";
 import { WorkerMessage } from "./types/worker-types";
 import { HttpResponse } from "./types/server-types";
 
@@ -25,7 +25,7 @@ const app = (): Server => {
     console.log(`\nServer started ${process.pid}`);
 
     try {
-      const data: HttpResponse = await requestHandler(req, res);
+      const data: HttpResponse = await handleRequest(req, res);
       const isSuccess = !!data.status;
 
       res.statusCode = isSuccess ? data.status : 404;

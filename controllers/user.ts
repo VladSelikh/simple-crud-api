@@ -3,6 +3,7 @@ import cluster from "cluster";
 
 import { setData } from "./db";
 import { IUser } from "../types/user-types";
+import { v4 } from "uuid";
 
 export class UsersDataBase {
   private database: IUser[] = [];
@@ -48,7 +49,8 @@ export class UsersDataBase {
   }
 
   public createUser(data: IUser) {
-    data.id = crypto.randomUUID();
+    data.id = v4();
+
     this.database.push(data);
 
     if (cluster.isWorker) {
