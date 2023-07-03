@@ -7,9 +7,7 @@ import { IUser } from "../types/user-types";
 export class UsersDataBase {
   private database: IUser[] = [];
 
-  constructor(users: IUser[]) {
-    this.database = users;
-  }
+  constructor() {}
 
   public setUsers(users: IUser[]) {
     this.database = users;
@@ -52,12 +50,11 @@ export class UsersDataBase {
   public createUser(data: IUser) {
     data.id = crypto.randomUUID();
     this.database.push(data);
+
     if (cluster.isWorker) {
       setData("users", this.database);
     }
   }
-
-  public getStringifiedUsers() {
-    return JSON.stringify({ data: this.database });
-  }
 }
+
+export const UserDB: UsersDataBase = new UsersDataBase();

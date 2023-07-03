@@ -1,12 +1,12 @@
 import { IUser } from "./user-types";
 
-export interface ServerResponse {
+export interface IServerResponse {
   data?: IUser[] | IUser;
   error?: string;
   message?: string;
 }
 
 export interface HttpResponse {
-  response: ServerResponse;
+  response: IServerResponse;
   status: number;
 }
