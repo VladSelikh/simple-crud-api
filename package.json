@@ -4,7 +4,8 @@
   "description": "Simple CRUD API server",
   "main": "index.ts",
   "scripts": {
-    "run-server": "ts-node index.ts"
+    "test": "jest --detectOpenHandles",
+    "start:dev": "ts-node index.ts"
   },
   "repository": {
     "type": "git",

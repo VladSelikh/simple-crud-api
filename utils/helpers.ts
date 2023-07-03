@@ -3,6 +3,7 @@ import { IUser } from "../types/user-types";
 import { v4, validate } from "uuid";
 import {
   BASE_URL_MATCHER,
+  ERROR_MESSAGES,
   HTTP_METHODS,
   URL_BASE,
   URL_MATCHER,
@@ -31,9 +32,16 @@ const parseBody = async (req: IncomingMessage) => {
   });
 };
 
-const validateUser = (body: IUser) => {
+const isPostBodyValid = (body: IUser) => {
   const { username, age, hobbies } = body;
-  return Boolean(username && age && hobbies && Array.isArray(hobbies));
+  const isSchemaValid = Boolean(username && age && hobbies);
+  const isTypificationValid = Boolean(
+    typeof age === "number" &&
+      typeof username === "string" &&
+      Array.isArray(hobbies)
+  );
+
+  return isSchemaValid && isTypificationValid;
 };
 
 export const handleRequest = async (
@@ -71,7 +79,7 @@ export const handleRequest = async (
 
         return {
           response: JSON.stringify({
-            error: "Provided ID is not a valid UUID value!",
+            error: ERROR_MESSAGES.NOT_VALID_UUID,
           }),
           status: 400,
         };
@@ -88,7 +96,7 @@ export const handleRequest = async (
             };
           }
 
-          if (validateUser(requestBody)) {
+          if (isPostBodyValid(requestBody)) {
             const userId: string = v4();
 
             const newUser: IUser = {
@@ -113,7 +121,7 @@ export const handleRequest = async (
         }
         return {
           response: JSON.stringify({
-            error: "Please provide a valid URL string for this request method!",
+            error: ERROR_MESSAGES.PROVIDE_VALID_URL,
           }),
           status: 404,
         };
@@ -126,7 +134,7 @@ export const handleRequest = async (
 
             if (!searchResults) {
               return {
-                response: JSON.stringify({ error: "User not found" }),
+                response: JSON.stringify({ error: ERROR_MESSAGES.USER_NOT_FOUND }),
                 status: 404,
               };
             }
@@ -146,14 +154,14 @@ export const handleRequest = async (
           }
           return {
             response: JSON.stringify({
-              error: "Provided ID is not a valid UUID value!",
+              error: ERROR_MESSAGES.NOT_VALID_UUID,
             }),
             status: 400,
           };
         }
         return {
           response: JSON.stringify({
-            error: "Please provide a valid URL string for this request method!",
+            error: ERROR_MESSAGES.PROVIDE_VALID_URL,
           }),
           status: 404,
         };
@@ -166,7 +174,7 @@ export const handleRequest = async (
 
             if (!searchResults) {
               return {
-                response: JSON.stringify({ error: "User not found" }),
+                response: JSON.stringify({ error: ERROR_MESSAGES.USER_NOT_FOUND }),
                 status: 404,
               };
             }
@@ -180,14 +188,14 @@ export const handleRequest = async (
           }
           return {
             response: JSON.stringify({
-              error: "Provided ID is not a valid UUID value!",
+              error: ERROR_MESSAGES.NOT_VALID_UUID,
             }),
             status: 400,
           };
         }
         return {
           response: JSON.stringify({
-            error: "Please provide a valid URL string for this request method!",
+            error: ERROR_MESSAGES.PROVIDE_VALID_URL,
           }),
           status: 404,
         };

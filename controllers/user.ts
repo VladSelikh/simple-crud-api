@@ -1,4 +1,3 @@
-import * as crypto from "crypto";
 import cluster from "cluster";
 
 import { setData } from "./db";
