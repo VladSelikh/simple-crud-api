@@ -1,4 +1,6 @@
+import { STATUS_CODES } from "../constants/constants";
+
 export interface HttpResponse {
   response: string;
-  status: number;
+  status: STATUS_CODES;
 }
