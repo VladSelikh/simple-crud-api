@@ -47,7 +47,7 @@ if (cluster.isPrimary) {
 
         const destination = `${servers[currentServer]}${req.url}`
 
-        process.stdout.write(`\nSending request to [${req.method}] ${destination}\n`)
+        console.log(`\nSending request to [${req.method}] ${destination}\n`)
 
         const options = {
             hostname: '127.0.0.1',

@@ -29,6 +29,8 @@ export class UsersDataBase {
     if (cluster.isWorker) {
       setData("users", this.database);
     }
+
+    return this.getUserById(data.id);
   }
 
   public updateUserById(uuid: string, data: IUser) {

@@ -3,11 +3,12 @@ import { UserDB } from "./controllers/user";
 import { handleRequest } from "./utils/helpers";
 import { WorkerMessage } from "./types/worker-types";
 import { HttpResponse } from "./types/server-types";
+import { STATUS_CODES } from "./constants/constants";
 
 process.on("message", (data: Buffer) => {
   const message: WorkerMessage = JSON.parse(data.toString());
 
-  process.stdout.write(`Updating users on worker ${process.pid}\n`);
+  console.log(`Updating users on worker ${process.pid}\n`);
 
   UserDB.setUsers(message.users);
 });
@@ -29,7 +30,7 @@ export const app = (): Server => {
         isSuccess ? data.response : JSON.stringify({ error: "Not found" })
       );
     } catch (error: any) {
-      res.statusCode = 500;
+      res.statusCode = STATUS_CODES.SERVER_ERROR;
 
       res.end(JSON.stringify({ error: error.message || "Unexpected server side error!" }));
     }
